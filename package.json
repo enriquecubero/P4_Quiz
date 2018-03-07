@@ -1,0 +1,30 @@
+{
+  "name": "quiz",
+  "version": "1.0.0",
+  "description": "Proyecto Quiz Core",
+  "main": "main.js",
+  "scripts": {
+    "start": "node main.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/enriquecubero/P2_Quiz.git"
+  },
+  "keywords": [
+    "quiz",
+    "core",
+    "node"
+  ],
+  "author": "Enrique Cubero Cantero",
+  "license": "Unlicense",
+  "bugs": {
+    "url": "https://github.com/enriquecubero/P2_Quiz/issues"
+  },
+  "homepage": "https://github.com/enriquecubero/P2_Quiz#readme",
+  "dependencies": {
+    "chalk": "^2.3.2",
+    "figlet": "^1.2.0",
+    "npm": "^5.7.1"
+  }
+}
