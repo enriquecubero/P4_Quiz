@@ -36,10 +36,6 @@ rl
         case 'h':
             cmds.helpCmd(rl);
             break;
-        case 'quit' :
-        case 'q' :
-            cmds.quitCmd(rl);
-            break;
         case 'add':
             cmds.addCmd(rl);
             break;
