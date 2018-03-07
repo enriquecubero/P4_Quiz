@@ -157,11 +157,13 @@ exports.testCmd = (rl,id) =>{
     }else{
         try{
             const quiz = model.getByIndex(id);
-            const pregunta = quiz.question + "? ";
-            rl.question(colorize(pregunta,'red'), respuesta =>{
-                if(respuesta.toLowerCase().trim() === quiz.answer){
+
+            rl.question(colorize('¿' +quiz.question + '?','red'), respuesta =>{
+                quizResp = quiz.answer.toLowerCase().trim();
+                resp = respuesta.toLowerCase().trim();
+                if(resp === quizResp){
                     // CORRECTO
-                    log("correct ");
+                    log("Correcto ");
                     rl.prompt();
                 }
                 else{
@@ -191,8 +193,8 @@ exports.playCmd = rl =>{
         if(toBeResolved.length === 0){
             log("Fin");
             log(` No hay más preguntas`);
-            log(` Examen finalizado con : ${score} puntos`);
-            biglog(score, 'magenta');
+            log(` Has conseguido : ${score} puntos`);
+            biglog(score, 'yellow');
             rl.prompt();
         } else{
             // Elegir una pregunta aleatoria
@@ -201,24 +203,27 @@ exports.playCmd = rl =>{
             // Hacer la pregunta
             let quiz = model.getByIndex(toBeResolved[id]);
             toBeResolved.splice(id,1);
-            const pregunta = quiz.question + "? ";
-            rl.question(colorize(quiz.question + '?','red'), respuesta =>{
-                if(respuesta.toLowerCase().trim() === quiz.answer){
+            rl.question(colorize('¿' +quiz.question + '?','red'), respuesta =>{
+                quizResp = quiz.answer.toLowerCase().trim();
+                resp = respuesta.toLowerCase().trim();
+                if(resp === quizResp){
                     // CORRECTO, CONTINUA
                     score ++;
 
-                    log(` correct `);
+                    log(` Correcto `);
                     log(`Lleva  ${score}  aciertos`);
                     // HACER UNA NUEVA PREGUNTA
+                    if(score == num_preg){
+                        biglog('has ganado', 'green');
+                    }
                     playOne();
-
                 }
                 else{
                     //INCORRECTO, FINAL
-                    log("incorrect");
+                    log("Incorrecto");
                     log("Fin ");
                     log ("Aciertos: ");
-                    biglog(`${score}`, 'green');
+                    biglog(`${score}`, 'yellow');
                     rl.prompt();
 
                 }
