@@ -93,7 +93,7 @@ exports.showCmd = (rl, id) => {
 };
 
 /**
- * Esta función convierte la llamada rl.question, que está basada en callbacks, en un función basada en promesas.
+ * Esta función convierte la llamada rl.question, que está basada en callbacks, en una función basada en promesas.
  *
  * Esta función devuelve una promesa que cuando se cumple, proporciona el texto introducido.
  *
@@ -228,88 +228,119 @@ exports.editCmd = (rl, id) => {
  * @param id Clave del quiz a probar.
  */
 
+exports.testCmd = (rl, id) => {
+validateId(id)
+    .then(id => models.quiz.findById(id))
+    .then(quiz => {
 
-exports.testCmd = (rl,id) =>{
-    if(typeof id ==="undefined"){
-        errorlog (`Falta el parametro id.`);
-        rl.prompt();
-    }else{
-        try{
-            const quiz = model.getByIndex(id);
+        if(!quiz) {
 
-            rl.question(colorize('¿' +quiz.question + '?','red'), respuesta =>{
-                quizResp = quiz.answer.toLowerCase().trim();
-                resp = respuesta.toLowerCase().trim();
-                if(resp === quizResp){
-                    // CORRECTO
-                    log("Correcto ");
-                    rl.prompt();
-                }
-                else{
-                    //INCORRECTO
-                    log("Incorrecto ");
-                    rl.prompt();
+            throw new Error(`No existe un quiz asociado al id = {id}.`);
+
+        }
+
+        return makeQuestion(rl, "¿" + quiz.question + "? ")
+            .then(q => {
+
+                //respCase = resp.toLowerCase().trim();
+                quizAnswerCase =  quiz.answer.toLowerCase().trim();
+                //if (respCase === quizAnswerCase) {
+
+                if (q.toLowerCase().trim() === quizAnswerCase) {
+
+                    log(`Correcto `);
+                    biglog('CORRECTA', 'green');
+
+                } else {
+
+                    log(`Su respuesta es incorrecta. `);
+                    biglog('INCORRECTA', 'red');
+
                 }
             });
+    })
 
-        } catch(error){
-            errorlog(error.message);
-            rl.prompt();
-        }
-    }
+    .catch(Sequelize.ValidationError, error => {
+        errorlog('El quiz es erróneo: ');
+        error.errors.forEach(({message}) => errorlog(message));
+    })
+
+    .catch(error => {
+        errorlog(error.message);
+    })
+
+    .then(() => {
+        rl.prompt();
+
+    });
 };
 
-exports.playCmd = rl =>{
+/**
+ * Pregunta todos los quizzes existentes en el modelo en orden aleatorio.
+ * Se gana si se contesta a todos satisfactoriamente.
+ *
+ * @param rl Objeto readline usado para implementar el CLI.
+ *
+ * Cargar en un array todas las preguntas al principio e ir eliminándolas según se van preguntando.
+ *
+ */
+exports.playCmd = rl => {
+
     let score = 0;
-    var i;
-    //array con todos los ids
-    let toBeResolved =[];
-    let num_preg = model.count();
-    for(i = 0; i<num_preg; i++){
-        toBeResolved[i] = i;
-    }
-    const playOne = () =>{
-        if(toBeResolved.length === 0){
-            log("Fin");
-            log(` No hay más preguntas`);
-            log(` Has conseguido : ${score} puntos`);
-            biglog(score, 'yellow');
-            rl.prompt();
-        } else{
-            // Elegir una pregunta aleatoria
-            let id = Math.round(Math.random()*(toBeResolved.length-1));
+    let toBeResolved = [];
 
-            // Hacer la pregunta
-            let quiz = model.getByIndex(toBeResolved[id]);
-            toBeResolved.splice(id,1);
-            rl.question(colorize('¿' +quiz.question + '?','red'), respuesta =>{
-                quizResp = quiz.answer.toLowerCase().trim();
-                resp = respuesta.toLowerCase().trim();
-                if(resp === quizResp){
-                    // CORRECTO, CONTINUA
-                    score ++;
+    const playOne = () => {
 
-                    log(` Correcto `);
-                    log(`Lleva  ${score}  aciertos`);
-                    // HACER UNA NUEVA PREGUNTA
-                    if(score == num_preg){
-                        biglog('has ganado', 'green');
+        return new Promise((resolve, reject) => {
+
+            if (toBeResolved.length == 0) {
+
+                log(`No hay nada más que preguntar. `);
+                log(`Fin del juego. Aciertos: ${score} `);
+                biglog(score, 'magenta');
+                rl.prompt();
+
+            }
+
+            let id = Math.floor(Math.random() * toBeResolved.length);
+            const quiz = toBeResolved[id];
+
+            return makeQuestion(rl, "¿" + quiz.question + "? ")
+                .then(q => {
+
+                    quizAnswerCase =  quiz.answer.toLowerCase().trim();
+
+                    if (q.toLowerCase().trim() === quizAnswerCase) {
+                        score += 1;
+                        log(` CORRECTO - Lleva ${score} aciertos. `);
+                        toBeResolved.splice(id,1);
+                        playOne();
+
+                    } else {
+
+                        log(` INCORRECTO. `);
+                        log(` Fin del juego. Aciertos: ${score} `);
+                        biglog(score, 'magenta');
+                        rl.prompt();
+
                     }
-                    playOne();
-                }
-                else{
-                    //INCORRECTO, FINAL
-                    log("Incorrecto");
-                    log("Fin ");
-                    log ("Aciertos: ");
-                    biglog(`${score}`, 'yellow');
-                    rl.prompt();
-
-                }
-            });
-        }
+                })
+        })
     }
-    playOne();
+    models.quiz.findAll({raw: true})
+        .then(quiz => {
+            toBeResolved = quiz;
+        })
+        .then(() => {
+            return playOne();
+        })
+        .catch(error => {
+            errorlog(error.message);
+        })
+        .then(() => {
+            biglog(score, 'magenta');
+            rl.prompt();
+        })
 };
 
 exports.creditsCmd = (rl)=>{
