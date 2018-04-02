@@ -352,7 +352,7 @@ exports.playCmd = (socket, rl) => {
 exports.creditsCmd = (socket, rl) => {
 
     log(socket, 'Autor de la práctica:');
-    log(socket, 'Javier Labajo Antequera' , 'green')
+    log(socket, 'ENRIQUE CUBERo')
     rl.prompt();
 };
 
