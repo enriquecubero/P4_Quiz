@@ -1,2 +1,2 @@
-﻿# P3_Quiz
-Práctica 3 Core Quiz
+﻿# P4_Quiz
+Práctica 4 Core Quiz
